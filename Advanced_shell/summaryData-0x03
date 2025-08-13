@@ -1,0 +1,38 @@
+#!/bin/bash
+# Create a report that summarizes data for multiple Pokémon.
+
+# Report Generation
+REPORT_FILE="pokemon_report.csv"
+DATA_DIR="pokemon_data"
+
+echo "CSV Report generated at: $REPORT_FILE"
+
+# Create the CSV file and write the header.
+echo "Name,Height (m),weight (kg)" > "$REPORT_FILE"
+
+# Loop through each JSON file in the data directory.
+for file in "$DATA_DIR"/*.json; do
+  jq -r '[.name, (.height / 10), (.weight / 10)] | @csv' "$file" >> "$REPORT_FILE"
+done
+
+# Average Calculation
+echo
+awk '
+BEGIN {
+    FS=",";
+    sum_height=0; sum_weight=0; count=0;
+}
+NR > 1 {
+    # Add the height and weight from each line to our running totals.
+    sum_height += $2;
+    sum_weight += $3;
+    count++;
+}
+END {
+    if (count > 0) {
+        avg_height = sum_height / count;
+        avg_weight = sum_weight / count;
+        printf "Average Height: %.2f m\n", avg_height;
+        printf "Average Weight: %.2f kg\n", avg_weight;
+    }
+}' "$REPORT_FILE"
