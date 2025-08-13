@@ -1,0 +1,5 @@
+#!/bin/bash
+# Automate the process of making API request to the Pokeman API and
+# saving the result to a file
+
+curl "https://pokeapi.co/api/v2/pokemon/" > data.json 2>errors.txt
