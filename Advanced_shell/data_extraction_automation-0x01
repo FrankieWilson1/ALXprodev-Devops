@@ -2,15 +2,14 @@
 # Use advanced text manipulatin tools to extract specific data from
 # the API response.
 
-jq -r '.name, .height, weight, .types[0].type.name' data.json | awk '{
-  # Capitalize the first letter of the name and type
-  name = toupper(substr($1,1,1)) substr($1,2)
-  type = toupper(substr($4,1,1)) substr($4,2)
+jq -r '"\(.name), \(.height), \(.weight), \(.types[0].type.name)"' data.json | \
+sed -E 's/^([^,]+),([^,]+),([^,]+),([^,])$/\u\1, \2, \2, \3, \u\4/' | \
+awk -F',' '{
+  name=$1; height=$2; weight=$3; type=$4;
 
-  # Convert height (dm to m) and weight (hg to kg)
-  height_m = $2 / 10
-  weight_kg = $3 / 10
+  # Convert height (dm to m) and weight (hg, to kg)
+  formatted_height = height / 10
+  formatted_weight = weight / 10
 
-  # Print the final formatted sentence
-  printf "%s is of type %s, weighs %.0fkg, and is %.1fm tall.\n", name, type, weight_kg, height_m
-}
+  printf "%s is of type %s, weighs %.0fkg, and is %.1fm tall.\n", name, type, formatted_weight, formatted_height
+}'
