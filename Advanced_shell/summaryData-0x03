@@ -1,14 +1,14 @@
 #!/bin/bash
-# Create a report that summarizes data for multiple Pokémon.
+#Script to read Pokémon data from JSON files and create a CSV report with averages.
 
-# Report Generation
+Report Generation
 REPORT_FILE="pokemon_report.csv"
 DATA_DIR="pokemon_data"
 
 echo "CSV Report generated at: $REPORT_FILE"
 
 # Create the CSV file and write the header.
-echo "Name,Height (m),weight (kg)" > "$REPORT_FILE"
+echo "Name,Height (m),Weight (kg)" > "$REPORT_FILE"
 
 # Loop through each JSON file in the data directory.
 for file in "$DATA_DIR"/*.json; do
@@ -17,7 +17,7 @@ done
 
 # Average Calculation
 echo
-awk '
+sed 's/ / /g' "$REPORT_FILE" | awk '
 BEGIN {
     FS=",";
     sum_height=0; sum_weight=0; count=0;

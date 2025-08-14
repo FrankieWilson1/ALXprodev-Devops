@@ -11,5 +11,5 @@ awk -F',' '{
   formatted_height = height / 10
   formatted_weight = weight / 10
 
-  printf "%s is of type %s, weighs %.0fkg, and is %.1fm tall.\n", name, type, formatted_weight, formatted_height
+  printf "%s is of type %s, weighs%.0fkg, and is %.1fm tall.\n", name, type, formatted_weight, formatted_height
 }'
