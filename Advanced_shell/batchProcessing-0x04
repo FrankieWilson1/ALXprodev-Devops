@@ -4,28 +4,39 @@
 # Array of pokemon names.
 pokemon_list=(bulbasaur ivysaur venusaur charmander charmeleon)
 
-# 2. Define the base URL for the API and the output directory.
+# Define the base URL for the API and the output directory.
 API_URL="https://pokeapi.co/api/v2/pokemon/"
 OUTPUT_DIR="pokemon_data"
 
-# 3. Create the output directory if it doesn't exist.
-mkdir -p "$OUTPUT_DIR"
+declare -a pids
 
-echo "Starting parallel fetching for ${#pokemon_list[@]} Pokémon..."
+# Define a cleanup function to kill background jobs if the script is interrupted.
+cleanup() {
+    echo -e "\nScript interrupted! Terminating background jobs..."
+    # Loop through the stored PIDs and kill each one.
+    for pid in "${pids[@]}"; do
+        kill "$pid" 2>/dev/null
+    done
+    exit 1
+}
 
-# 4. Loop through each Pokémon and launch a background process.
+# Set up a trap to call the cleanup function if the script receives an interrupt signal (SIGINT).
+trap cleanup SIGINT
+
 for pokemon in "${pokemon_list[@]}"; do
-    # Convert the name to lowercase for the URL and filename.
     pokemon_lower=$(echo "$pokemon" | tr '[:upper:]' '[:lower:]')
     
-    # Make the API request and save the output as a background job.
-    # The ampersand (&) is the key here!
+    # Launch curl as a background job and store its PID.
     curl -sS "${API_URL}${pokemon_lower}" -o "${OUTPUT_DIR}/${pokemon_lower}.json" &
+    pids+=($!) # The special variable $! holds the PID of the last background process.
+    echo "Launched job for $pokemon with PID: $! ✅"
 done
 
-# 5. Wait for all background processes to complete.
-echo "All requests launched. Waiting for them to finish..."
-wait
+# Wait for each background process to complete individually.
+echo "Waiting for all jobs to finish..."
+for pid in "${pids[@]}"; do
+    wait "$pid"
+done
 
 echo "All Pokémon data has been fetched and saved. ✅"
 echo "Script finished."
