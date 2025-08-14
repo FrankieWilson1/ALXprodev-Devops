@@ -4,6 +4,9 @@
 # Define data file
 DATA_FILE="data.json"
 
-jq -r '[.name, (.height / 10), (.weight / 10), (.weight / 10), .types[0].type.name] | @csv' "$DATA_FILE" | \
+jq -r '[.name, (.height / 10), (.weight / 10), .types[0].type.name] | @csv' "$DATA_FILE" | \
+sed -E 's/^([^,]+),([^,]+),([^,]+),([^,]+)$/\u\1,\2,\3,\u\4/' | \
+
 sed -E 's/^([^,]+),([^,]+),([^,]+),([^,]+)$/\u\1, \2, \3, \u\4/' | \
 awk -F',' '{printf "%s is of type %s, weighs %.0.fkg, and is %.1fm tall.\n", $1, $4, $3, $2}'
+awk -F',' '{printf "%s is of type %s, weighs %.0fkg, and is %.1fm tall.\n", $1, $4, $3, $2}'
