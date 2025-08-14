@@ -7,6 +7,7 @@ pokemon_list=("bulbasaur", "ivysaur", "venusaur", "charmander", "charmeleon")
 # Base URL for the API and the output directory.
 API_URL="https://pokeapi.co/api/v2/pokemon/"
 OUTPUT_DIR="pokemon_data"
+MAX_ATTEMPTS=3
 
 # Create the output directory if it doesen't exist.
 mkdir -p "$OUTPUT_DIR"
@@ -15,16 +16,32 @@ mkdir -p "$OUTPUT_DIR"
 for pokemon in "${pokemon_list[@]}"; do
     echo "Fetching data for $pokemon..."
 
+    # Initialize retry variables.
+    attempts=0
+    status=1
+
     # Convert the name to lowercase for the URL and filename.
     pokemon_lower=$(echo "$pokemon" | tr '[:upper:]' '[:lower:]')
 
-    # Make the API request and save the output to a file.
-    curl -s "${API_URL}${pokemon_lower}" > "${OUTPUT_DIR}/${pokemon_lower}.json"
+    # Retry loo:
+    while [ $status -ne 0 ] && [ $attempts -lt $MAX_ATTEMPTS ]; do
+        if [ $attempts -gt 0 ]; then
+            echo " Request failed. Retrying attempt $attempts..."
+            sleep 2
+        fi
 
-    # Add a deley to avoid hitting API rate limits.
-    sleep 1
+        # Make the API request and save the output (Silently)
+        curl -sS -o "${OUTPUT_DIR}/${pokemon_lower}.json" "${API_URL}${pokemon_lower}"
+        status=$?  # Capture the exit status
+        attempts=$((attempts + 1))
+    done
 
-    echo "Saved data to ${OUTPUT_DIR}/${pokemon_lower}.json ✅"
+    # Check final status after all retries.
+    if [ $status -eq 0 ]; then
+        echo "Saved data to ${OUTPUT_DIR}/${pokemon_lower}.json ✅"
+    else
+        echo "Failed to fetch data for $pokemon after $MAX_ATTEMPTs attempts. Skipping. ❌"
+    fi
 done
 
 echo "Script finished."

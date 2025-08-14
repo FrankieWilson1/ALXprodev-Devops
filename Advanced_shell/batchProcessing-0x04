@@ -1,0 +1,31 @@
+#!/bin/bash
+# Script to fetch data for a list of Pokemon in parallel.
+
+# Array of pokemon names.
+pokemon_list=(bulbasaur ivysaur venusaur charmander charmeleon)
+
+# 2. Define the base URL for the API and the output directory.
+API_URL="https://pokeapi.co/api/v2/pokemon/"
+OUTPUT_DIR="pokemon_data"
+
+# 3. Create the output directory if it doesn't exist.
+mkdir -p "$OUTPUT_DIR"
+
+echo "Starting parallel fetching for ${#pokemon_list[@]} Pokémon..."
+
+# 4. Loop through each Pokémon and launch a background process.
+for pokemon in "${pokemon_list[@]}"; do
+    # Convert the name to lowercase for the URL and filename.
+    pokemon_lower=$(echo "$pokemon" | tr '[:upper:]' '[:lower:]')
+    
+    # Make the API request and save the output as a background job.
+    # The ampersand (&) is the key here!
+    curl -sS "${API_URL}${pokemon_lower}" -o "${OUTPUT_DIR}/${pokemon_lower}.json" &
+done
+
+# 5. Wait for all background processes to complete.
+echo "All requests launched. Waiting for them to finish..."
+wait
+
+echo "All Pokémon data has been fetched and saved. ✅"
+echo "Script finished."
